@@ -9,6 +9,7 @@ export type IDownloaderConfig = {
     cleanable?: boolean;
     extension?: string;
     silent?: boolean;
+    info?: boolean;
 }
 
 
@@ -23,6 +24,8 @@ export interface IDownloader {
 
     get extracted(): string[] | undefined;
 
+    get basename(): string | undefined;
+
     get downloaded(): string | undefined;
 
     get exception(): DownloaderException | undefined;
@@ -36,6 +39,8 @@ export interface IDownloader {
     extension(extension: string): this;
 
     silent(silent: boolean): this;
+
+    info(info: boolean): this;
 
     caches(directory: string): this;
 
