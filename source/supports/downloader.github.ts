@@ -45,6 +45,10 @@ export namespace GithubDownloader {
                 .output(outputDir || process.cwd())
         }
 
+        get downloader(): IDownloader {
+            return this._downloader;
+        }
+
         async process() {
             const download = await this._downloader.process();
             return download.extract();
