@@ -20,6 +20,7 @@ export type ICapabilityPayload = {
 }
 
 export type ICapabilityConfig = {
+    slug: string;
     name: string;
     description?: string;
     workdir?: string;
