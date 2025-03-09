@@ -1,7 +1,7 @@
 {
   "displayName": "Protorians:ThreadCore",
   "name": "@protorians/thread-core",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Protorians Thread Core",
   "type": "commonjs",
   "main": "build/index.js",
