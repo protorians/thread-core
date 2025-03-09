@@ -147,7 +147,7 @@ export namespace ThreadCapabilities {
             silent,
         })
         dumper.signal.listen('commits', ({name, files}) => {
-            if (!silent) Terminal.Display.info('[COMMIT]', '<', name, '> with', files.length, `file${files.length > 1 ? 's' : ''}`);
+            if (!silent) Terminal.Display.info('[COMMIT]', `${name} :`, files.length, `file${files.length > 1 ? 's' : ''}`);
         })
         return dumper.start()
     }
