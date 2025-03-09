@@ -1,0 +1,38 @@
+name: Publish to npm
+
+on:
+  push:
+    branches:
+      - rc
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install `ts-add-js-extension`
+        run: npm install ts-add-js-extension -g
+
+      - name: Build project
+        run: npm run build
+
+      - name: Configure npm
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${{secrets.NPM_TOKEN}}" > ~/.npmrc
+          echo "@protorians:registry=https://registry.npmjs.org/" >> ~/.npmrc
+
+      - name: Publish to npm
+        run: npm publish --access=public --tag next
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

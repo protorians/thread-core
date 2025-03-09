@@ -1,2 +1,2 @@
-# arcane-core
-Protorians Arcane Core
+# thread-core
+Protorians thread-core
