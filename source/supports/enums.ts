@@ -1,5 +1,5 @@
 export namespace ThreadEnum {
-    export enum Capability {
+    export enum Rune {
         CONFIG_FILE = "rune.config.json",
         MAIN_FILE = "rune.js",
     }

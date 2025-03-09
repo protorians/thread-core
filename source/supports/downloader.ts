@@ -113,7 +113,7 @@ export namespace ThreadDownloader {
             try {
 
                 if (!this._config.silent) {
-                    spinner = await ThreadProgress.createSpinner(`Get ${this._config.name} rune...`);
+                    spinner = await ThreadProgress.createSpinner(`Fetch ${this._config.name}...`);
                     spinner.start()
                     spinner.color = 'cyan'
                 }

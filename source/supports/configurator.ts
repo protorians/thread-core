@@ -1,6 +1,5 @@
 import {existsSync, readFileSync, writeFileSync} from "node:fs";
 import {ThreadObject} from "./object";
-import {Environment} from "@protorians/core";
 
 
 export namespace ThreadConfig {
@@ -40,17 +39,11 @@ export namespace ThreadConfig {
         remove<K extends keyof T>(key: K): this {
             if (this._schematic && this._schematic[key as string] !== undefined) {
 
-                if (Environment.Client) {
-                    const accumulate: T = {} as T
-                    Object.entries(this._schematic).forEach(([k, value]) => {
-                        if (k !== key) accumulate[k] = value;
-                    });
-                    this._schematic = accumulate;
-                }
-
-                if (!Environment.Client) {
-                    delete this._schematic[key as string];
-                }
+                const accumulate: T = {} as T
+                Object.entries(this._schematic).forEach(([k, value]) => {
+                    if (k !== key) accumulate[k] = value;
+                });
+                this._schematic = accumulate;
             }
             return this;
         }
@@ -59,7 +52,7 @@ export namespace ThreadConfig {
         save(): boolean {
             try {
                 if (!this.source) return false;
-                writeFileSync(this.source, JSON.stringify(this._schematic || {}))
+                writeFileSync(this.source, JSON.stringify(this._schematic || {}, null, 2), {encoding: 'utf-8'});
                 return true;
             } catch (e) {
                 return false;

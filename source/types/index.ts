@@ -1,4 +1,4 @@
-export * from "./capabilities"
+export * from "./runes"
 export * from "./config"
 export * from "./package"
 export * from "./repository"

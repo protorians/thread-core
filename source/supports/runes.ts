@@ -2,13 +2,13 @@ import {resolve, relative, dirname} from "node:path";
 import * as fs from "node:fs";
 import {Terminal} from "./terminal";
 import {
-    ICapabilityConfig,
-    ICapabilityDumper,
-    ICapabilityDumperConfig,
-    ICapabilityPayload,
-    ICapabilityPayloads,
-    ICapabilityScheme,
-    ICapabilityDumperSignalMap
+    IRuneConfig,
+    IRuneDumper,
+    IRuneDumperConfig,
+    IRunePayload,
+    IRunePayloads,
+    IRuneScheme,
+    IRuneDumperSignalMap
 } from "../types";
 import {ISignalStack, Signal} from "@protorians/core";
 import {readFileSync} from "node:fs";
@@ -16,16 +16,16 @@ import {Command} from "commander";
 import {ThreadEnum} from "./enums";
 
 
-export namespace ThreadCapabilities {
+export namespace ThreadRunes {
 
-    export class Dumper implements ICapabilityDumper {
+    export class Dumper implements IRuneDumper {
 
-        _entries: ICapabilityPayloads = {}
+        _entries: IRunePayloads = {}
 
-        signal: ISignalStack<ICapabilityDumperSignalMap>
+        signal: ISignalStack<IRuneDumperSignalMap>
 
         constructor(
-            public readonly config: ICapabilityDumperConfig
+            public readonly config: IRuneDumperConfig
         ) {
             this.signal = new Signal.Stack;
         }
@@ -34,12 +34,12 @@ export namespace ThreadCapabilities {
             return this._entries;
         }
 
-        commit(name: string, file: string): ICapabilityPayload {
+        commit(name: string, file: string): IRunePayload {
             const filepath = resolve(this.config.directory, `./${name}`)
             const data = {name, file};
 
-            let config: ICapabilityConfig = (typeof this._entries[name] !== "object")
-                ? JSON.parse(readFileSync(`${filepath}/${ThreadEnum.Capability.CONFIG_FILE}`).toString())
+            let config: IRuneConfig = (typeof this._entries[name] !== "object")
+                ? JSON.parse(readFileSync(`${filepath}/${ThreadEnum.Rune.CONFIG_FILE}`).toString())
                 : this._entries[name]
 
             config.files = config.files || [];
@@ -107,7 +107,7 @@ export namespace ThreadCapabilities {
             try {
                 const dir: string = dirname(this.config.output);
 
-                const scheme: ICapabilityScheme = {
+                const scheme: IRuneScheme = {
                     meta: {
                         ...this.config,
                         timestamp: new Date().getTime(),
@@ -141,8 +141,8 @@ export namespace ThreadCapabilities {
             directory: binDir,
             output: dumpFile,
             allow: [
-                ThreadEnum.Capability.CONFIG_FILE,
-                ThreadEnum.Capability.MAIN_FILE,
+                ThreadEnum.Rune.CONFIG_FILE,
+                ThreadEnum.Rune.MAIN_FILE,
             ],
             silent,
         })
@@ -152,7 +152,7 @@ export namespace ThreadCapabilities {
         return dumper.start()
     }
 
-    export function read(filePath: string): ICapabilityScheme {
+    export function read(filePath: string): IRuneScheme {
         return JSON.parse(fs.readFileSync(filePath, {encoding: 'utf8'}))
     }
 
@@ -160,7 +160,7 @@ export namespace ThreadCapabilities {
         make: Command,
         binDir: string,
         directory: string,
-        commands: ICapabilityScheme,
+        commands: IRuneScheme,
     ): Command {
 
         for (const [name, config] of Object.entries(commands.payload || {})) {
@@ -169,8 +169,8 @@ export namespace ThreadCapabilities {
 
             if (!files) continue;
             if (!(Array.isArray(files) &&
-                files.includes(ThreadEnum.Capability.CONFIG_FILE) &&
-                files.includes(ThreadEnum.Capability.MAIN_FILE)
+                files.includes(ThreadEnum.Rune.CONFIG_FILE) &&
+                files.includes(ThreadEnum.Rune.MAIN_FILE)
             )) continue;
             if (typeof config !== 'object') continue;
 
