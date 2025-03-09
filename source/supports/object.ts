@@ -1,6 +1,7 @@
 export namespace ThreadObject {
     export function toNested<T>(obj: T, nestedPath: string): any {
-        return nestedPath.split('.').reduce((acc, key) => acc && acc[key], obj);
+        return nestedPath.split('.')
+            .reduce((acc, key) => acc && acc[key], obj);
     }
 
     export function deepMerge(
