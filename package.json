@@ -1,7 +1,7 @@
 {
   "displayName": "Protorians:ThreadCore",
   "name": "@protorians/thread-core",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Protorians Thread Core",
   "type": "commonjs",
   "main": "build/index.js",
@@ -37,9 +37,11 @@
     "adm-zip": "^0.5.16",
     "ansi-colors": "^4.1.3",
     "cli-progress": "^3.12.0",
+    "cli-spinners": "^3.2.0",
     "commander": "^12.1.0",
     "extract-zip": "^2.0.1",
     "fs": "0.0.1-security",
+    "ora": "5.4.1",
     "path": "^0.12.7"
   }
 }
