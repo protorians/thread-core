@@ -8,6 +8,7 @@ import {DownloaderException} from "../exception";
 import {ThreadProgress} from "./progress";
 import {ThreadDirectory, ThreadFile} from "./fs.manager";
 import {existsSync} from "node:fs";
+import {basename} from "path";
 
 export namespace ThreadDownloader {
 
@@ -133,7 +134,7 @@ export namespace ThreadDownloader {
 
                 progress = (size && this._config.silent === false)
                     ? ThreadProgress.create({
-                        name: this._config.name,
+                        name: this._slug || this._config.name,
                         cleanable: true,
                     })
                     : undefined;
@@ -232,105 +233,69 @@ export namespace ThreadDownloader {
 
     }
 
+
+    export class Group {
+
+        protected pointer: number = 0;
+        protected _downloaded: number = 0;
+        readonly length: number = 0;
+        protected progress: SingleBar | undefined;
+        protected _instances: IDownloader[] = []
+
+        constructor(
+            readonly entries: string[],
+            readonly output: string,
+            readonly caches: string | null = null,
+            readonly extension: string | null = null,
+        ) {
+            this.length = entries.length;
+
+            this.progress = ThreadProgress.create({
+                name: 'Downloading',
+            })
+            this.progress?.start(this.length, 0);
+        }
+
+        get downloaded(): number {
+            return this._downloaded;
+        }
+
+        get instances(): IDownloader[] {
+            return this._instances
+        }
+
+        async next() {
+            const entry = this.entries.shift();
+
+            if (entry) {
+                const downloader = (new Create())
+                    .name(basename(entry).split('?')[0])
+                    .url(entry)
+                    .caches(this.caches || this.output)
+                    .silent(true)
+
+                if (this.extension) downloader.extension(this.extension)
+
+                this._instances.push(downloader);
+                await downloader.process()
+                    .then((status) => {
+                        this._downloaded++;
+                        this.progress?.update(this._downloaded);
+                        return status;
+                    })
+                    .finally(async () => await this.next())
+
+                return false;
+            } else {
+                this.progress?.stop();
+                Terminal.Display.success("TASK", `Download complete (${this._downloaded}/${this.length})`);
+                return true;
+            }
+        }
+
+
+    }
+
+
 }
-
-
-// export class Downloader {
-//
-//     protected _entries: string[] = [];
-//
-//     readonly zip: string;
-//     readonly output: string
-//
-//     public options: IDownloaderConfig = {silent: false};
-//
-//     constructor(
-//         public readonly name: string,
-//         public readonly url: string,
-//         output: string | null,
-//         public readonly extension: string | null = null,
-//     ) {
-//         this.name = this.formatName(name);
-//         this.output = output || process.cwd();
-//         this.zip = `${path.join(this.output, this.name)}${this.extension?.trim().length ? this.extension : ''}`;
-//     }
-//
-//     formatName(name: string): string {
-//         return (name.includes('/') || name.includes('\\'))
-//             ? Str.slugify(this.name)
-//             : (name).split('?')[0];
-//     }
-//
-//     get entries(): string[] {
-//         return this._entries;
-//     }
-//
-//     private async download(): Promise<void> {
-//
-//     }
-//
-//     private async extract(output: string): Promise<boolean> {
-//     }
-//
-//     public async start(output?: string): Promise<boolean> {
-//         return await this.download()
-//             .then(() => output ? this.extract(output) : true);
-//     }
-// }
-//
-//
-// export class GroupDownloader {
-//
-//     protected pointer: number = 0;
-//     protected _downloaded: number = 0;
-//     readonly length: number = 0;
-//     protected progress: SingleBar;
-//
-//     constructor(
-//         readonly entries: string[],
-//         readonly output: string,
-//         readonly caches: string | null = null,
-//         readonly extension: string | null = null,
-//     ) {
-//         this.length = entries.length;
-//
-//         this.progress = new cliProgress.SingleBar({
-//             clearOnComplete: true,
-//         }, cliProgress.Presets.shades_classic);
-//         this.progress?.start(this.length, 0);
-//     }
-//
-//     get downloaded(): number {
-//         return this._downloaded;
-//     }
-//
-//     async next() {
-//         const entry = this.entries.shift();
-//
-//         if (entry) {
-//             const downloader = new Downloader(
-//                 basename(entry),
-//                 entry,
-//                 this.caches || this.output,
-//                 this.extension
-//             );
-//             downloader.options.silent = true;
-//             await downloader.start(this.caches ? this.output : undefined)
-//                 .then((status) => {
-//                     this._downloaded++;
-//                     this.progress?.update(this._downloaded);
-//                     return status;
-//                 })
-//                 .finally(async () => await this.next())
-//
-//             return false
-//         } else {
-//             this.progress.stop();
-//             Terminal.Display.success("TASK", `Download complete (${this._downloaded}/${this.length})`);
-//             return true;
-//         }
-//     }
-//
-//
-// }
 
