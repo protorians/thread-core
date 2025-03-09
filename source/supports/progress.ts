@@ -2,6 +2,7 @@ import {SingleBar} from "cli-progress";
 import * as cliProgress from "cli-progress";
 import * as colors from "ansi-colors";
 import {ProgressOptions} from "../types";
+import * as ora from "ora";
 
 export namespace ThreadProgress {
 
@@ -13,6 +14,11 @@ export namespace ThreadProgress {
             hideCursor: typeof options.cursor === 'undefined' ? true : options.cursor,
             clearOnComplete: typeof options.cleanable === 'undefined' ? true : options.cleanable,
         }, cliProgress.Presets.shades_classic)
+    }
+
+
+    export async function createSpinner(label: string) {
+        return ora(label);
     }
 
 }
