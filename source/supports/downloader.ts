@@ -9,11 +9,12 @@ import {ThreadProgress} from "./progress";
 import {ThreadDirectory, ThreadFile} from "./fs.manager";
 import {existsSync} from "node:fs";
 import {basename} from "path";
+import {Ora} from "ora";
 
 export namespace ThreadDownloader {
 
     export class Create implements IDownloader {
-        protected _config: Partial<IDownloaderConfig> = {};
+        protected _config: Partial<IDownloaderConfig> = {info: true};
         protected _exception: DownloaderException | undefined;
         protected _response: Response | undefined;
         protected _downloaded: string | undefined;
@@ -47,6 +48,14 @@ export namespace ThreadDownloader {
 
         get extracted(): string[] | undefined {
             return this._extracted;
+        }
+
+        get basename(): string | undefined {
+            if (this._downloaded) {
+                const base = basename(this._downloaded)
+                return base.substring(0, base.lastIndexOf(".")) || base;
+            }
+            return undefined
         }
 
         caches(directory: string): this {
@@ -86,6 +95,11 @@ export namespace ThreadDownloader {
             return this;
         }
 
+        info(info: boolean): this {
+            this._config.info = info;
+            return this;
+        }
+
         url(url: string): this {
             this._config.url = url;
             return this;
@@ -94,8 +108,15 @@ export namespace ThreadDownloader {
 
         async process(): Promise<this> {
             let progress: SingleBar | undefined;
+            let spinner: Ora | undefined = undefined
 
             try {
+
+                if (!this._config.silent) {
+                    spinner = await ThreadProgress.createSpinner(`Get ${this._config.name} rune...`);
+                    spinner.start()
+                    spinner.color = 'cyan'
+                }
 
                 this._config.output = this._config.output || process.cwd();
 
@@ -108,11 +129,13 @@ export namespace ThreadDownloader {
                 }
 
                 const response = await fetch(this._config.url);
+                // spinner?.clear()
+                spinner?.stop()
+
                 if (!response.ok) {
-                    Terminal.Display.info("INFO", this._config.url)
+                    Terminal.Display.info("INFO", this._config.name, 'not found')
                     throw new DownloaderException(`Erreur HTTP ${response.status}`);
                 }
-
 
                 let filename = this._config.url;
                 const contentDisposition = response.headers.get("content-disposition");
@@ -158,7 +181,7 @@ export namespace ThreadDownloader {
 
                 stream.end();
                 progress?.stop();
-                if (!this._config.silent) Terminal.Display.highlight("TASK", `${this._config.name} downloaded!`);
+                if (!this._config.silent && this._config.info) Terminal.Display.info("TASK", `${this._config.name} downloaded!`);
 
             } catch (error: any) {
                 if (progress) progress.stop()
@@ -194,7 +217,7 @@ export namespace ThreadDownloader {
                     .catch(err => this._exception = err)
 
                 if (cleanable) fs.unlinkSync(this._downloaded);
-                if (!this._config.silent) Terminal.Display.success("TASK", `${this._config.name} extracted`);
+                if (!this._config.silent && this._config.info) Terminal.Display.info("TASK", `${this._config.name} extracted!`);
 
             } catch (error: any) {
                 this._exception = error;
@@ -221,11 +244,11 @@ export namespace ThreadDownloader {
                 }
                 this._copied = ThreadDirectory.copy(this._config.name, output, directory)
 
-                if (!this._config.silent) Terminal.Display.success("TASK", `${this.name} extracted`);
+                if (!this._config.silent) Terminal.Display.info("TASK", `${this._config.name} copied!`);
                 return this;
             } catch (error: any) {
                 this._exception = error;
-                if (!this._config.silent) Terminal.Display.error("ERR", 'Extracting failed \n\n', error.message);
+                if (!this._config.silent && this._config.info) Terminal.Display.error("ERR", 'Extracting failed \n\n', error.message);
             }
 
             return this
